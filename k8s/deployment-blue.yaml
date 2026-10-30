@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meditrack-blue
+  namespace: healthcare
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: meditrack
+      version: blue
+  template:
+    metadata:
+      labels:
+        app: meditrack
+        version: blue
+    spec:
+      containers:
+      - name: meditrack
+        image: yashraj0409/meditrack:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: APP_VERSION
+          value: "v1.0.0-BLUE"
+        - name: DEPLOYMENT_SLOT
+          value: "BLUE"
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10

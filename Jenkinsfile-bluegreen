@@ -1,0 +1,70 @@
+pipeline {
+    agent any
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
+        DOCKER_IMAGE = "yashraj0409/meditrack"
+        NAMESPACE = "healthcare"
+    }
+    stages {
+        stage('Checkout') {
+            steps { checkout scm }
+        }
+        stage('Detect Active Slot') {
+            steps {
+                script {
+                    def active = sh(
+                        script: "kubectl get service meditrack-bg-service -n ${NAMESPACE} -o jsonpath='{.spec.selector.version}' 2>/dev/null || echo 'green'",
+                        returnStdout: true
+                    ).trim()
+                    env.ACTIVE_SLOT   = active
+                    env.INACTIVE_SLOT = (active == 'blue') ? 'green' : 'blue'
+                    echo "🔵 Live: ${env.ACTIVE_SLOT} → 🟢 Deploying to: ${env.INACTIVE_SLOT}"
+                }
+            }
+        }
+        stage('Deploy Inactive Slot') {
+            steps {
+                sh "kubectl apply -f k8s/deployment-${env.INACTIVE_SLOT}.yaml -n ${NAMESPACE}"
+                sh "kubectl rollout status deployment/meditrack-${env.INACTIVE_SLOT} -n ${NAMESPACE} --timeout=120s"
+            }
+        }
+        stage('Health Check') {
+            steps {
+                script {
+                    sh """
+                        POD=\$(kubectl get pod -n ${NAMESPACE} -l version=${env.INACTIVE_SLOT} -o jsonpath='{.items[0].metadata.name}')
+                        echo "Checking pod: \$POD"
+                        kubectl exec \$POD -n ${NAMESPACE} -- node -e "require('http').get('http://localhost:3000/health',(r)=>{console.log('Status:',r.statusCode);process.exit(r.statusCode===200?0:1)})"
+                        echo "✅ ${env.INACTIVE_SLOT} slot is healthy!"
+                    """
+                }
+            }
+        }
+        stage('Switch Traffic') {
+            steps {
+                sh "kubectl apply -f k8s/service-bg.yaml -n ${NAMESPACE}"
+                sh "kubectl patch service meditrack-bg-service -n ${NAMESPACE} -p '{\"spec\":{\"selector\":{\"version\":\"${env.INACTIVE_SLOT}\"}}}'"
+                echo "✅ Traffic switched to: ${env.INACTIVE_SLOT}"
+            }
+        }
+        stage('Scale Down Old Slot') {
+            steps {
+                sh "kubectl scale deployment meditrack-${env.ACTIVE_SLOT} -n ${NAMESPACE} --replicas=0 || true"
+                echo "Old ${env.ACTIVE_SLOT} slot scaled down"
+            }
+        }
+        stage('Verify') {
+            steps {
+                sh "kubectl get pods -n ${NAMESPACE}"
+                sh "kubectl get service meditrack-bg-service -n ${NAMESPACE} -o jsonpath='Active slot: {.spec.selector.version}'"
+            }
+        }
+    }
+    post {
+        success { echo "🎉 Blue-Green switch complete! Live: ${env.INACTIVE_SLOT}" }
+        failure {
+            sh "kubectl patch service meditrack-bg-service -n ${NAMESPACE} -p '{\"spec\":{\"selector\":{\"version\":\"${env.ACTIVE_SLOT}\"}}}' || true"
+            echo "❌ Failed! Rolled back to ${env.ACTIVE_SLOT}"
+        }
+    }
+}
