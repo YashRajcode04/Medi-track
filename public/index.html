@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MediTrack HMS — Hospital Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:#060b18;color:#e2e8f0;min-height:100vh}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 40px;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(20px);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:12px}
+.logo-icon{width:38px;height:38px;background:linear-gradient(135deg,#3b82f6,#06b6d4);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-text h1{font-size:1.1rem;font-weight:700;color:#fff}
+.logo-text p{font-size:0.7rem;color:#64748b;margin-top:1px}
+.nav-right{display:flex;align-items:center;gap:20px}
+.live-badge{display:flex;align-items:center;gap:6px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);padding:6px 14px;border-radius:20px;font-size:0.75rem;color:#10b981;font-weight:600}
+.live-dot{width:6px;height:6px;background:#10b981;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.3)}}
+.nav-time{font-size:0.8rem;color:#64748b}
+
+/* HERO */
+.hero{padding:40px 40px 20px;background:linear-gradient(180deg,rgba(59,130,246,0.05) 0%,transparent 100%)}
+.hero h2{font-size:1.6rem;font-weight:700;color:#fff;margin-bottom:6px}
+.hero p{font-size:0.9rem;color:#64748b}
+.hero-tags{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.tag{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);padding:4px 12px;border-radius:20px;font-size:0.72rem;color:#94a3b8}
+.tag span{color:#3b82f6;margin-right:4px}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:20px 40px}
+.stat{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px;position:relative;overflow:hidden;transition:all 0.3s}
+.stat:hover{border-color:rgba(59,130,246,0.3);transform:translateY(-2px)}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat.blue::before{background:linear-gradient(90deg,#3b82f6,#06b6d4)}
+.stat.green::before{background:linear-gradient(90deg,#10b981,#06b6d4)}
+.stat.purple::before{background:linear-gradient(90deg,#8b5cf6,#3b82f6)}
+.stat.orange::before{background:linear-gradient(90deg,#f59e0b,#ef4444)}
+.stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:12px}
+.stat.blue .stat-icon{background:rgba(59,130,246,0.1)}
+.stat.green .stat-icon{background:rgba(16,185,129,0.1)}
+.stat.purple .stat-icon{background:rgba(139,92,246,0.1)}
+.stat.orange .stat-icon{background:rgba(245,158,11,0.1)}
+.stat h3{font-size:2rem;font-weight:700;color:#fff;line-height:1}
+.stat p{font-size:0.78rem;color:#64748b;margin-top:4px}
+.stat-change{font-size:0.72rem;color:#10b981;margin-top:8px}
+
+/* MAIN GRID */
+.main{display:grid;grid-template-columns:1fr 300px;gap:20px;padding:0 40px 40px}
+
+/* TABLE CARD */
+.card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;overflow:hidden}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,0.06)}
+.card-header h3{font-size:0.95rem;font-weight:600;color:#fff}
+.card-header p{font-size:0.78rem;color:#64748b;margin-top:2px}
+.add-btn{background:linear-gradient(135deg,#3b82f6,#06b6d4);color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;transition:opacity 0.2s}
+.add-btn:hover{opacity:0.85}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+thead tr{background:rgba(255,255,255,0.02)}
+th{padding:12px 20px;text-align:left;font-size:0.72rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.05em}
+td{padding:14px 20px;font-size:0.85rem;border-top:1px solid rgba(255,255,255,0.04)}
+tr:hover td{background:rgba(255,255,255,0.02)}
+.patient-name{font-weight:600;color:#fff}
+.patient-id{color:#64748b;font-size:0.78rem}
+.ward-badge{background:rgba(59,130,246,0.1);color:#60a5fa;padding:3px 10px;border-radius:6px;font-size:0.75rem;font-weight:500}
+.status-badge{padding:4px 12px;border-radius:20px;font-size:0.72rem;font-weight:600}
+.s-admitted{background:rgba(239,68,68,0.1);color:#f87171;border:1px solid rgba(239,68,68,0.2)}
+.s-observation{background:rgba(245,158,11,0.1);color:#fbbf24;border:1px solid rgba(245,158,11,0.2)}
+.s-recovery{background:rgba(16,185,129,0.1);color:#34d399;border:1px solid rgba(16,185,129,0.2)}
+.avatar{width:32px;height:32px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;margin-right:10px;background:linear-gradient(135deg,#3b82f6,#8b5cf6);color:#fff}
+
+/* SIDEBAR */
+.sidebar{display:flex;flex-direction:column;gap:16px}
+
+/* ADMIT FORM */
+.form-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px}
+.form-card h3{font-size:0.9rem;font-weight:600;color:#fff;margin-bottom:4px}
+.form-card p{font-size:0.75rem;color:#64748b;margin-bottom:16px}
+.form-group{margin-bottom:10px}
+.form-group label{display:block;font-size:0.72rem;font-weight:500;color:#94a3b8;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.05em}
+.form-group input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);color:#e2e8f0;padding:9px 12px;border-radius:8px;font-size:0.82rem;font-family:'Inter',sans-serif;transition:border-color 0.2s}
+.form-group input:focus{outline:none;border-color:rgba(59,130,246,0.5);background:rgba(59,130,246,0.05)}
+.form-group input::placeholder{color:#475569}
+.submit-btn{width:100%;background:linear-gradient(135deg,#3b82f6,#06b6d4);color:#fff;border:none;padding:10px;border-radius:8px;font-size:0.85rem;font-weight:600;cursor:pointer;margin-top:6px;transition:opacity 0.2s;font-family:'Inter',sans-serif}
+.submit-btn:hover{opacity:0.85}
+
+/* SYSTEM STATUS */
+.status-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:16px;padding:20px}
+.status-card h3{font-size:0.9rem;font-weight:600;color:#fff;margin-bottom:16px}
+.status-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.status-item:last-child{border-bottom:none;padding-bottom:0}
+.status-left{display:flex;align-items:center;gap:10px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#10b981}
+.status-label{font-size:0.8rem;color:#94a3b8}
+.status-val{font-size:0.75rem;font-weight:600;color:#10b981}
+
+/* FOOTER */
+footer{background:rgba(255,255,255,0.02);border-top:1px solid rgba(255,255,255,0.06);padding:16px 40px;display:flex;align-items:center;justify-content:space-between}
+footer p{font-size:0.75rem;color:#475569}
+.tech-stack{display:flex;gap:10px}
+.tech{background:rgba(255,255,255,0.04);padding:3px 10px;border-radius:6px;font-size:0.7rem;color:#64748b}
+
+/* MODAL */
+.toast{position:fixed;bottom:30px;right:30px;background:linear-gradient(135deg,#10b981,#06b6d4);color:#fff;padding:12px 20px;border-radius:12px;font-size:0.85rem;font-weight:600;display:none;animation:slideIn 0.3s ease}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">
+    <div class="logo-icon">🏥</div>
+    <div class="logo-text">
+      <h1>MediTrack HMS</h1>
+      <p>Hospital Management System</p>
+    </div>
+  </div>
+  <div class="nav-right">
+    <span class="nav-time" id="clock"></span>
+    <div class="live-badge"><div class="live-dot"></div>SYSTEM LIVE</div>
+  </div>
+</nav>
+
+<div class="hero">
+  <h2>Patient Management Dashboard</h2>
+  <p>Real-time hospital operations · Deployed on AWS EC2 with full DevSecOps pipeline</p>
+  <div class="hero-tags">
+    <div class="tag"><span>⚙️</span>Jenkins CI/CD</div>
+    <div class="tag"><span>🐳</span>Docker + Kubernetes</div>
+    <div class="tag"><span>🛡️</span>Trivy Security Scan</div>
+    <div class="tag"><span>🔵🟢</span>Blue-Green Deploy</div>
+    <div class="tag"><span>🔒</span>Non-Root Container</div>
+    <div class="tag"><span>☁️</span>AWS EC2</div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat blue">
+    <div class="stat-icon">🛏️</div>
+    <h3 id="s-total">-</h3>
+    <p>Total Patients</p>
+    <div class="stat-change">● Active Records</div>
+  </div>
+  <div class="stat green">
+    <div class="stat-icon">✅</div>
+    <h3 id="s-status">-</h3>
+    <p>System Status</p>
+    <div class="stat-change">● All systems operational</div>
+  </div>
+  <div class="stat purple">
+    <div class="stat-icon">🏷️</div>
+    <h3 id="s-version">-</h3>
+    <p>Deployed Version</p>
+    <div class="stat-change">● Latest release</div>
+  </div>
+  <div class="stat orange">
+    <div class="stat-icon">🔒</div>
+    <h3>SECURE</h3>
+    <p>Security Posture</p>
+    <div class="stat-change" style="color:#f59e0b">● Trivy scanned</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3>Patient Records</h3>
+        <p>All admitted and monitored patients</p>
+      </div>
+      <button class="add-btn" onclick="document.getElementById('pname').focus()">+ Admit Patient</button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Patient</th>
+          <th>Age</th>
+          <th>Condition</th>
+          <th>Ward</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="5" style="text-align:center;color:#475569;padding:40px">Loading patient records...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="sidebar">
+    <div class="form-card">
+      <h3>➕ Admit New Patient</h3>
+      <p>Register a new patient into the system</p>
+      <div class="form-group">
+        <label>Patient Name</label>
+        <input id="pname" placeholder="e.g. Rahul Verma"/>
+      </div>
+      <div class="form-group">
+        <label>Age</label>
+        <input id="page" placeholder="e.g. 45" type="number"/>
+      </div>
+      <div class="form-group">
+        <label>Condition / Diagnosis</label>
+        <input id="pcond" placeholder="e.g. Type 2 Diabetes"/>
+      </div>
+      <div class="form-group">
+        <label>Ward</label>
+        <input id="pward" placeholder="e.g. Endocrinology"/>
+      </div>
+      <button class="submit-btn" onclick="admit()">Admit Patient →</button>
+    </div>
+
+    <div class="status-card">
+      <h3>🖥️ System Status</h3>
+      <div class="status-item">
+        <div class="status-left"><div class="status-dot"></div><span class="status-label">API Server</span></div>
+        <span class="status-val">ONLINE</span>
+      </div>
+      <div class="status-item">
+        <div class="status-left"><div class="status-dot"></div><span class="status-label">Kubernetes</span></div>
+        <span class="status-val">RUNNING</span>
+      </div>
+      <div class="status-item">
+        <div class="status-left"><div class="status-dot"></div><span class="status-label">Jenkins Pipeline</span></div>
+        <span class="status-val">SUCCESS</span>
+      </div>
+      <div class="status-item">
+        <div class="status-left"><div class="status-dot" style="background:#3b82f6"></div><span class="status-label">Blue-Green</span></div>
+        <span class="status-val" style="color:#60a5fa">ACTIVE</span>
+      </div>
+      <div class="status-item">
+        <div class="status-left"><div class="status-dot"></div><span class="status-label">Trivy Scan</span></div>
+        <span class="status-val">PASSED</span>
+      </div>
+      <div class="status-item">
+        <div class="status-left"><div class="status-dot"></div><span class="status-label">Container</span></div>
+        <span class="status-val">NON-ROOT</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>MediTrack HMS · Built by <strong style="color:#60a5fa">Yash Raj</strong> · SRM Institute of Science and Technology · PBL-III DevOps Project</p>
+  <div class="tech-stack">
+    <span class="tech">Node.js</span>
+    <span class="tech">Docker</span>
+    <span class="tech">Kubernetes</span>
+    <span class="tech">Jenkins</span>
+    <span class="tech">AWS EC2</span>
+  </div>
+</footer>
+
+<div class="toast" id="toast">✅ Patient admitted successfully!</div>
+
+<script>
+function clock(){
+  const now=new Date();
+  document.getElementById('clock').textContent=now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(clock,1000); clock();
+
+const colors=['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4'];
+function initials(name){return name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();}
+
+async function load(){
+  try{
+    const h=await fetch('/health').then(r=>r.json());
+    document.getElementById('s-status').textContent=h.status.toUpperCase();
+    document.getElementById('s-version').textContent=h.version;
+    const p=await fetch('/api/patients').then(r=>r.json());
+    document.getElementById('s-total').textContent=p.count;
+    const statusClass={'Admitted':'s-admitted','Observation':'s-observation','Recovery':'s-recovery'};
+    document.getElementById('tbody').innerHTML=p.data.map((x,i)=>`
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center">
+            <div class="avatar" style="background:linear-gradient(135deg,${colors[i%colors.length]},${colors[(i+1)%colors.length]})">${initials(x.name)}</div>
+            <div><div class="patient-name">${x.name}</div><div class="patient-id">ID #${x.id}</div></div>
+          </div>
+        </td>
+        <td>${x.age} yrs</td>
+        <td>${x.condition}</td>
+        <td><span class="ward-badge">${x.ward}</span></td>
+        <td><span class="status-badge ${statusClass[x.status]||'s-admitted'}">${x.status}</span></td>
+      </tr>
+    `).join('');
+  }catch(e){console.error(e);}
+}
+
+async function admit(){
+  const name=document.getElementById('pname').value.trim();
+  const age=document.getElementById('page').value;
+  const condition=document.getElementById('pcond').value.trim();
+  const ward=document.getElementById('pward').value.trim();
+  if(!name||!age||!condition){alert('Please fill in name, age and condition');return;}
+  await fetch('/api/patients',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,age:parseInt(age),condition,ward:ward||'General'})});
+  document.getElementById('pname').value='';
+  document.getElementById('page').value='';
+  document.getElementById('pcond').value='';
+  document.getElementById('pward').value='';
+  const t=document.getElementById('toast');
+  t.style.display='block';
+  setTimeout(()=>t.style.display='none',3000);
+  load();
+}
+
+load();
+setInterval(load,15000);
+</script>
+</body>
+</html>
