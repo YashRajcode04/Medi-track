@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')
-        DOCKER_IMAGE = "YOUR_DOCKERHUB_USERNAME/meditrack"
+        DOCKER_IMAGE = "yashraj0409/meditrack"
         IMAGE_TAG = "${BUILD_NUMBER}"
         NAMESPACE = "healthcare"
         JENKINS_HOME_DIR = "/var/jenkins_home"
