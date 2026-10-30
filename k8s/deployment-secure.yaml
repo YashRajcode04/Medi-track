@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: meditrack-secure
+  namespace: healthcare
+  labels:
+    compliance: devsecops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: meditrack-secure
+  template:
+    metadata:
+      labels:
+        app: meditrack-secure
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: meditrack
+        image: yashraj0409/meditrack:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: APP_VERSION
+          value: "v1.0.0-SECURE"
+        - name: DEPLOYMENT_SLOT
+          value: "secure-production"
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        volumeMounts:
+        - name: tmp-dir
+          mountPath: /tmp
+      volumes:
+      - name: tmp-dir
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: meditrack-secure-service
+  namespace: healthcare
+spec:
+  selector:
+    app: meditrack-secure
+  ports:
+  - port: 80
+    targetPort: 3000
+    nodePort: 30003
+  type: NodePort
