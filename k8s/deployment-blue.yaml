@@ -4,7 +4,7 @@ metadata:
   name: meditrack-blue
   namespace: healthcare
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: meditrack
